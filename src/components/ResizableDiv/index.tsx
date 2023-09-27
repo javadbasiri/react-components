@@ -1,4 +1,4 @@
-import { MouseEvent, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 
 interface IProps {
     minHeight: number;
@@ -10,13 +10,13 @@ const ResizableDiv = ({ children, maxHeight, minHeight }: IProps) => {
     //
     const rootDivRef = useRef<HTMLDivElement>(null);
 
-    const resize = (event: any) => {
+    const resize = (event: globalThis.MouseEvent) => {
         const resizableDiv = rootDivRef.current;
         if (!resizableDiv) return;
         resizableDiv.style.height = `${event.clientY - resizableDiv.getBoundingClientRect().top}px`;
     };
 
-    const initResize = (e: MouseEvent<HTMLDivElement>) => {
+    const initResize = () => {
         document.addEventListener('mousemove', resize);
         document.addEventListener('mouseup', stopResize);
     };
