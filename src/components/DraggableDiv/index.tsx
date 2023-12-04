@@ -10,16 +10,23 @@ const DraggableDiv = ({ children }: IProps) => {
 
   const dragZoneRef = useRef<HTMLElement | null>(null);
 
+  const initialOffset = useRef<number>(0);
+
   useEffect(() => {
-    const rootEl = rootRef.current
-    if(!rootEl) return;
+    const rootEl = rootRef.current;
+    if (!rootEl) return;
     const target = rootEl.querySelector("#dragZone") as HTMLElement;
     dragZoneRef.current = target;
   }, [rootRef]);
 
   const startDragging = (event: MouseEvent) => {
     event.preventDefault();
-    event.stopPropagation()
+    event.stopPropagation();
+
+    const rootEl = rootRef.current;
+    if (rootEl)
+      initialOffset.current =
+        event.clientX - rootEl.getBoundingClientRect().left;
 
     document.addEventListener("mouseup", stopDragging);
     document.addEventListener("mousemove", onDragging);
@@ -37,24 +44,25 @@ const DraggableDiv = ({ children }: IProps) => {
   const onDragging = (event: MouseEvent) => {
     //
     event.preventDefault();
-    const rootEl = rootRef.current
+    const rootEl = rootRef.current;
     if (!rootEl) return;
     const { clientX, clientY } = event;
-    const { width, height } = rootEl.getBoundingClientRect();
+    const { width } = rootEl.getBoundingClientRect();
+    const maxLeftOffset = window.innerWidth - width;
 
-    let positionX = clientX - width / 2
-    let positionY = clientY - height / 2;
+    let positionX = clientX - initialOffset.current;
+    let positionY = clientY;
 
-    if (clientX < 0) positionX = 0;
-    else rootEl.style.left = positionX + "px";
+    if (positionX < 0) positionX = 0;
+    if (positionX > maxLeftOffset) positionX = maxLeftOffset;
 
-    if (clientY < 0) positionY = 0;
-    else rootEl.style.top = positionY + "px";
+    if (positionY < 0) positionY = 0;
 
+    rootEl.style.transform = `translate(${positionX}px,${positionY}px)`;
   };
 
   useEffect(() => {
-    const dragZoneEl = dragZoneRef.current
+    const dragZoneEl = dragZoneRef.current;
     if (!dragZoneEl) return;
 
     dragZoneEl.addEventListener("mousedown", startDragging);
@@ -63,10 +71,7 @@ const DraggableDiv = ({ children }: IProps) => {
   }, [dragZoneRef]);
 
   return (
-    <div
-      ref={rootRef}
-      className="border absolute w-1/3 h-[400px] m-auto mt-[200px]"
-    >
+    <div ref={rootRef} className="border absolute">
       {children}
     </div>
   );
